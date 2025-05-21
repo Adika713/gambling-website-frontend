@@ -39,16 +39,18 @@ export default function MyApp({ Component, pageProps }) {
         <title>Gambling Website</title>
         <meta name="description" content="Virtual currency gambling platform" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </Head>
-      <div className="min-h-screen bg-gray-900 text-blue-200">
+      <div className="min-h-screen bg-zinc-900 text-gray-100">
         <Navbar />
         <main className="container mx-auto p-4">
           <Component {...pageProps} />
         </main>
-        <footer className="text-center py-4 text-blue-400">
+        <footer className="text-center py-4 text-teal-400">
           <p>This site uses virtual currency for entertainment purposes only.</p>
           <p>
-            <a href="https://beawaregambling.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+            <a href="https://beawaregambling.com" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300">
               Be Aware Gambling
             </a>
           </p>
@@ -56,7 +58,7 @@ export default function MyApp({ Component, pageProps }) {
             href="https://paypal.me/airfalcon"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-blue-600 text-white px-4 py-2 rounded mt-2 hover:bg-blue-700"
+            className="inline-block bg-teal-600 text-gray-100 px-4 py-2 rounded mt-2 hover:bg-teal-700"
           >
             Donate via PayPal
           </a>

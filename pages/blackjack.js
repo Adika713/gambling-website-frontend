@@ -24,34 +24,34 @@ export default function Blackjack() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6 text-blue-200 text-center">Blackjack</h2>
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+      <div className="bg-zinc-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-6 text-teal-300 text-center">Blackjack</h2>
         {isAuthenticated ? (
           <>
-            <p className="text-blue-100 mb-4">Balance: {balance} credits</p>
+            <p className="text-gray-100 mb-4">Balance: {balance} credits</p>
             <div className="mb-4">
-              <label htmlFor="bet" className="block text-blue-100 mb-2">Bet Amount</label>
+              <label htmlFor="bet" className="block text-gray-100 mb-2">Bet Amount</label>
               <input
                 type="number"
                 id="bet"
                 value={betAmount}
                 onChange={(e) => setBetAmount(Number(e.target.value))}
-                className="w-full p-2 rounded bg-gray-700 text-blue-100 border border-gray-600"
+                className="w-full p-2 rounded bg-zinc-700 text-gray-100 border border-zinc-600 focus:outline-none focus:border-teal-500"
               />
             </div>
             <button
               onClick={placeBet}
-              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+              className="w-full bg-teal-600 text-gray-100 p-2 rounded hover:bg-teal-700"
             >
               Place Bet
             </button>
             {gameState && (
-              <p className="text-blue-100 mt-4">Outcome: {gameState.outcome}</p>
+              <p className="text-gray-100 mt-4">Outcome: {gameState.outcome}</p>
             )}
           </>
         ) : (
-          <p className="text-blue-100">Please log in to play.</p>
+          <p className="text-gray-100">Please log in to play.</p>
         )}
       </div>
     </div>

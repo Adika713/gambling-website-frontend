@@ -1,120 +1,99 @@
-import { useEffect, useState, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router';
 import { AuthContext } from '../pages/_app';
 
 export default function Profile() {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, balance } = useContext(AuthContext);
   const [user, setUser] = useState(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/user/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data);
-      } catch (err) {
-        setError('Failed to load profile');
-      }
-    };
-    if (isAuthenticated) fetchUser();
-
-    // Handle OAuth callback query parameters
-    const { error, success } = router.query;
-    if (error) setError(decodeURIComponent(error));
-    if (success) setSuccess(decodeURIComponent(success));
-  }, [router.query, isAuthenticated]);
-
-  const connectDiscord = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Please log in to connect with Discord');
-      return;
+    if (isAuthenticated) {
+      const fetchUser = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setUser(res.data);
+        } catch (err) {
+          console.error('Failed to fetch user:', err);
+        }
+      };
+      fetchUser();
     }
-    const state = encodeURIComponent(token);
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/discord?state=${state}`;
-  };
+  }, [isAuthenticated]);
 
-  const handleAvatarError = (e) => {
-    e.target.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
-  };
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+        <p className="text-gray-100">Please log in to view your profile.</p>
+      </div>
+    );
+  }
+
+  const { discordName, email, gameHistory = [] } = user;
+  const totalPages = Math.ceil(gameHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentHistory = gameHistory.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-16">
-      <h2 className="text-3xl font-bold mb-6 text-blue-200">Profile</h2>
-      {error && <p className="text-red-400 mb-4">{error}</p>}
-      {success && <p className="text-green-400 mb-4">{success}</p>}
-      {user && (
-        <div className="space-y-6">
-          {/* Discord Card */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl flex items-center space-x-4">
-            {user.discordId ? (
-              <>
-                <img
-                  src={user.discordAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-                  alt="Discord Avatar"
-                  className="w-16 h-16 rounded-full border-2 border-blue-500"
-                  onError={handleAvatarError}
-                />
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-200">
-                    {user.discordName}
-                  </h3>
-                  <p className="text-blue-100">{user.discordName}</p>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center">
-                  <span className="text-blue-200 text-sm">No Avatar</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-200">Not Connected</h3>
-                  <button
-                    onClick={connectDiscord}
-                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Connect with Discord
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Info Card */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-            <h3 className="text-xl font-semibold mb-4 text-blue-200">Account Details</h3>
-            <p className="text-blue-100 mb-2">
-              <strong>Username:</strong> {user.username}
-            </p>
-            <p className="text-blue-100 mb-2">
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p className="text-blue-100 mb-4">
-              <strong>Balance:</strong>{' '}
-              <img src="/chip.png" alt="Chip" className="inline w-4 h-4" onError={(e) => (e.target.src = '/chip.svg')} /> {user.balance}
-            </p>
-            <h3 className="text-xl font-semibold mt-6 mb-4 text-blue-200">Game History</h3>
-            <ul className="space-y-2">
-              {user.gameHistory.map((game, index) => (
-                <li
-                  key={index}
-                  className="p-3 bg-gray-700 rounded border border-gray-600 text-blue-100"
-                >
-                  {game.game} - Bet: <img src="/chip.png" alt="Chip" className="inline w-4 h-4" onError={(e) => (e.target.src = '/chip.svg')} />{' '}
-                  {game.bet} - Outcome: {game.outcome} -{' '}
-                  {new Date(game.timestamp).toLocaleString()}
-                </li>
-              ))}
-            </ul>
-          </div>
+    <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+      <div className="bg-zinc-800 p-8 rounded-lg shadow-xl max-w-2xl w-full">
+        <h2 className="text-2xl font-bold mb-6 text-teal-300 text-center">Profile</h2>
+        <div className="text-gray-100 mb-6">
+          <p><strong>Discord Name:</strong> {discordName || 'Unknown'}</p>
+          <p><strong>Email:</strong> {email}</p>
+          <p><strong>Balance:</strong> {balance} credits</p>
         </div>
-      )}
+        <h3 className="text-xl font-bold mb-4 text-teal-300">Bet History</h3>
+        {gameHistory.length === 0 ? (
+          <p className="text-gray-100">No bets placed yet.</p>
+        ) : (
+          <>
+            <table className="w-full text-gray-100 mb-4">
+              <thead>
+                <tr>
+                  <th className="text-left p-2">Game</th>
+                  <th className="text-right p-2">Bet Amount</th>
+                  <th className="text-right p-2">Outcome</th>
+                  <th className="text-right p-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentHistory.map((bet, index) => (
+                  <tr key={index} className="border-t border-zinc-700">
+                    <td className="p-2">{bet.game}</td>
+                    <td className="p-2 text-right">{bet.amount} credits</td>
+                    <td className="p-2 text-right">{bet.outcome}</td>
+                    <td className="p-2 text-right">{new Date(bet.date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-between">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="bg-teal-600 text-gray-100 px-4 py-2 rounded hover:bg-teal-700 disabled:bg-zinc-600"
+              >
+                Previous
+              </button>
+              <span className="text-gray-100">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="bg-teal-600 text-gray-100 px-4 py-2 rounded hover:bg-teal-700 disabled:bg-zinc-600"
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
