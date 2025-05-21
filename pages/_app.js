@@ -1,53 +1,36 @@
-import '../styles/globals.css';
-import Navbar from '../components/Navbar';
-import RegisterModal from '../components/RegisterModal';
 import { createContext, useState, useEffect } from 'react';
 import Head from 'next/head';
+import Navbar from '../components/Navbar';
+import '../styles/globals.css';
 
 export const AuthContext = createContext();
 
-function MyApp({ Component, pageProps }) {
-  const [showModal, setShowModal] = useState(false);
+export default function MyApp({ Component, pageProps }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [balance, setBalance] = useState(1000);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
-    } else {
-      setShowModal(true);
     }
-
-    const handleAuthChange = () => {
-      const newToken = localStorage.getItem('token');
-      setIsAuthenticated(!!newToken);
-      if (!newToken) {
-        setBalance(1000);
-      }
-    };
-
-    window.addEventListener('authChange', handleAuthChange);
-    return () => window.removeEventListener('authChange', handleAuthChange);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, balance, setBalance }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
       <Head>
-        <link rel="icon" href="/chip.svg" type="image/svg+xml" />
-        <title>Casino</title>
+        <title>Gambling Website</title>
+        <meta name="description" content="Virtual currency gambling platform" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="min-h-screen bg-gray-900 text-gray-100">
+      <div className="min-h-screen bg-gray-900 text-blue-200">
         <Navbar />
-        {showModal && !isAuthenticated && (
-          <RegisterModal onClose={() => setShowModal(false)} />
-        )}
-        <div className="pt-16">
+        <main className="container mx-auto p-4">
           <Component {...pageProps} />
-        </div>
+        </main>
+        <footer className="text-center py-4 text-blue-400">
+          <p>This site uses virtual currency for entertainment purposes only.</p>
+        </footer>
       </div>
     </AuthContext.Provider>
   );
 }
-
-export default MyApp;
