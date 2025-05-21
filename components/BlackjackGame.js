@@ -1,139 +1,125 @@
-import { useState, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../pages/_app';
 
-const BlackjackGame = () => {
-  const { balance, setBalance } = useContext(AuthContext);
+export default function BlackjackGame() {
+  const [gameState, setGameState] = useState(null);
   const [bet, setBet] = useState(10);
-  const [playerCards, setPlayerCards] = useState([]);
-  const [dealerCards, setDealerCards] = useState([]);
-  const [gameStatus, setGameStatus] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const startGame = async () => {
+  const fetchGameState = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack`,
-        { action: 'deal', bet },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPlayerCards(res.data.playerCards);
-      setDealerCards([res.data.dealerCards[0], { face: 'hidden', value: '?' }]);
-      setBalance(res.data.balance);
-      setGameStatus('playing');
-      setMessage('');
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Error starting game');
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack/state`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGameState(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load game state');
     }
   };
 
-  const hit = async () => {
+  useEffect(() => {
+    fetchGameState();
+  }, []);
+
+  const handleDeal = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack`,
-        { action: 'hit' },
+        `${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack/deal`,
+        { bet },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setPlayerCards(res.data.playerCards);
-      if (res.data.status === 'bust') {
-        setGameStatus('over');
-        setMessage('You busted! Game over.');
-        setBalance(res.data.balance);
-        setDealerCards(res.data.dealerCards);
-      }
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Error hitting');
+      setGameState(res.data);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to deal');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const stand = async () => {
+  const handleAction = async (action) => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack`,
-        { action: 'stand' },
+        `${process.env.NEXT_PUBLIC_API_URL}/api/game/blackjack/${action}`,
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setDealerCards(res.data.dealerCards);
-      setGameStatus('over');
-      setMessage(res.data.outcome);
-      setBalance(res.data.balance);
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Error standing');
+      setGameState(res.data);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.message || `Failed to ${action}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-16">
-      <h2 className="text-3xl font-bold mb-6 text-blue-200">Blackjack</h2>
-      {message && <p className="text-red-400 mb-4">{message}</p>}
-      <div className="mb-4">
-        <label className="block text-blue-200">Bet Amount:</label>
-        <div className="flex items-center space-x-2">
-          <input
-            type="number"
-            value={bet}
-            onChange={(e) => setBet(Number(e.target.value))}
-            className="p-2 border border-gray-600 rounded bg-gray-700 text-blue-100 focus:outline-none focus:border-blue-500"
-            min="1"
-            disabled={gameStatus === 'playing'}
-          />
-          <img src="/chip.svg" alt="Chip" className="w-4 h-4" />
-        </div>
-      </div>
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold text-blue-200">Dealer's Cards</h3>
-        <div className="flex space-x-2">
-          {dealerCards.map((card, index) => (
-            <div
-              key={index}
-              className="p-2 bg-gray-700 border border-gray-600 rounded shadow-md text-blue-100"
+    <div className="min-h-screen bg-gray-900 text-blue-200 p-4">
+      <h2 className="text-3xl font-bold mb-6 text-center">Blackjack</h2>
+      {error && <p className="text-red-400 mb-4 text-center">{error}</p>}
+      <div className="max-w-2xl mx-auto bg-gray-800 p-6 rounded-lg shadow-xl">
+        {!gameState ? (
+          <div className="text-center">
+            <input
+              type="number"
+              value={bet}
+              onChange={(e) => setBet(Number(e.target.value))}
+              min="1"
+              className="p-2 rounded bg-gray-700 text-blue-100 border border-gray-600 mb-4"
+            />
+            <button
+              onClick={handleDeal}
+              disabled={isLoading}
+              className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {card.face}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold text-blue-200">Your Cards</h3>
-        <div className="flex space-x-2">
-          {playerCards.map((card, index) => (
-            <div
-              key={index}
-              className="p-2 bg-gray-700 border border-gray-600 rounded shadow-md text-blue-100"
-            >
-              {card.face}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="space-x-4">
-        <button
-          onClick={startGame}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-600"
-          disabled={gameStatus === 'playing'}
-        >
-          Deal
-        </button>
-        <button
-          onClick={hit}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors disabled:bg-gray-600"
-          disabled={gameStatus !== 'playing'}
-        >
-          Hit
-        </button>
-        <button
-          onClick={stand}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors disabled:bg-gray-600"
-          disabled={gameStatus !== 'playing'}
-        >
-          Stand
-        </button>
+              Deal
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p className="mb-2">
+              Bet: <img src="/chip.png" alt="Chip" className="inline w-4 h-4" onError={(e) => (e.target.src = '/chip.svg')} /> {gameState.bet}
+            </p>
+            <p className="mb-2">Player Hand: {gameState.playerHand.join(', ')} (Value: {gameState.playerValue})</p>
+            <p className="mb-4">Dealer Hand: {gameState.dealerHand.join(', ')} (Value: {gameState.dealerValue})</p>
+            {gameState.status === 'active' ? (
+              <div className="space-x-2">
+                <button
+                  onClick={() => handleAction('hit')}
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  Hit
+                </button>
+                <button
+                  onClick={() => handleAction('stand')}
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  Stand
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-blue-100 mb-4">Outcome: {gameState.outcome}</p>
+                <button
+                  onClick={handleDeal}
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  New Deal
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default BlackjackGame;
+}
