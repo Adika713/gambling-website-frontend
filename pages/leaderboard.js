@@ -1,46 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function Leaderboard() {
-  const [leaders, setLeaders] = useState([]);
-  const [error, setError] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
-    const fetchLeaders = async () => {
+    const fetchLeaderboard = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/user/leaderboard`);
-        setLeaders(res.data);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/leaderboard`);
+        setLeaderboard(res.data);
       } catch (err) {
-        setError('Failed to load leaderboard');
+        console.error('Failed to fetch leaderboard:', err);
       }
     };
-    fetchLeaders();
+    fetchLeaderboard();
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 mt-16">
-      <h2 className="text-3xl font-bold mb-6 text-blue-200">Leaderboard</h2>
-      {error && <p className="text-red-400 mb-4">{error}</p>}
-      <table className="w-full border-collapse bg-gray-800 rounded-lg shadow-xl">
-        <thead>
-          <tr className="bg-gray-700">
-            <th className="p-3 border-b border-gray-600 text-blue-200">Rank</th>
-            <th className="p-3 border-b border-gray-600 text-blue-200">Username</th>
-            <th className="p-3 border-b border-gray-600 text-blue-200">Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leaders.map((user, index) => (
-            <tr key={user._id} className="text-center text-blue-100">
-              <td className="p-3 border-b border-gray-600">{index + 1}</td>
-              <td className="p-3 border-b border-gray-600">{user.username}</td>
-              <td className="p-3 border-b border-gray-600">
-                <img src="/chip.svg" alt="Chip" className="inline w-4 h-4" /> {user.balance}
-              </td>
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full">
+        <h2 className="text-2xl font-bold mb-6 text-blue-200 text-center">Leaderboard</h2>
+        <table className="w-full text-blue-100">
+          <thead>
+            <tr>
+              <th className="text-left p-2">Rank</th>
+              <th className="text-left p-2">Player</th>
+              <th className="text-right p-2">Balance</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {leaderboard.map((player, index) => (
+              <tr key={player._id} className="border-t border-gray-700">
+                <td className="p-2">{index + 1}</td>
+                <td className="p-2">{player.discordName || 'Unknown'}</td>
+                <td className="p-2 text-right">{player.balance} credits</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
