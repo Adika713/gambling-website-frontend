@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from 'react';
 import Head from 'next/head';
 import Navbar from '../components/Navbar';
 import '../styles/globals.css';
+import '../styles/transitions.css';
 
 export const AuthContext = createContext();
 
