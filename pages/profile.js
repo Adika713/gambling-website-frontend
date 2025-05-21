@@ -40,6 +40,10 @@ export default function Profile() {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/discord?state=${state}`;
   };
 
+  const handleAvatarError = (e) => {
+    e.target.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 mt-16">
       <h2 className="text-3xl font-bold mb-6 text-blue-200">Profile</h2>
@@ -52,15 +56,16 @@ export default function Profile() {
             {user.discordId ? (
               <>
                 <img
-                  src={user.discordAvatar}
+                  src={user.discordAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
                   alt="Discord Avatar"
                   className="w-16 h-16 rounded-full border-2 border-blue-500"
+                  onError={handleAvatarError}
                 />
                 <div>
                   <h3 className="text-xl font-semibold text-blue-200">
                     {user.discordName}
                   </h3>
-                  <p className="text-blue-100">Connected to Discord</p>
+                  <p className="text-blue-100">{user.discordName}</p>
                 </div>
               </>
             ) : (
@@ -92,7 +97,7 @@ export default function Profile() {
             </p>
             <p className="text-blue-100 mb-4">
               <strong>Balance:</strong>{' '}
-              <img src="/chip.svg" alt="Chip" className="inline w-4 h-4" /> {user.balance}
+              <img src="/chip.png" alt="Chip" className="inline w-4 h-4" onError={(e) => (e.target.src = '/chip.svg')} /> {user.balance}
             </p>
             <h3 className="text-xl font-semibold mt-6 mb-4 text-blue-200">Game History</h3>
             <ul className="space-y-2">
@@ -101,7 +106,7 @@ export default function Profile() {
                   key={index}
                   className="p-3 bg-gray-700 rounded border border-gray-600 text-blue-100"
                 >
-                  {game.game} - Bet: <img src="/chip.svg" alt="Chip" className="inline w-4 h-4" />{' '}
+                  {game.game} - Bet: <img src="/chip.png" alt="Chip" className="inline w-4 h-4" onError={(e) => (e.target.src = '/chip.svg')} />{' '}
                   {game.bet} - Outcome: {game.outcome} -{' '}
                   {new Date(game.timestamp).toLocaleString()}
                 </li>
