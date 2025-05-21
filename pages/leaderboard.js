@@ -12,13 +12,13 @@ export default function Leaderboard() {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/leaderboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('Leaderboard response:', res.data); // Debug
+        console.log('Leaderboard fetch: token exists:', !!token);
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/leaderboard`, config);
+        console.log('Leaderboard response:', res.data);
         setLeaderboard(res.data);
       } catch (err) {
-        console.error('Failed to fetch leaderboard:', err);
+        console.error('Failed to fetch leaderboard:', err.response?.data || err.message);
         setError(err.response?.data?.message || 'Failed to load leaderboard');
       } finally {
         setLoading(false);

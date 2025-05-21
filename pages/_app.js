@@ -12,26 +12,33 @@ export default function MyApp({ Component, pageProps }) {
   const [balance, setBalance] = useState(0);
 
   const refreshBalance = async () => {
-    if (isAuthenticated) {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setBalance(res.data.balance);
-      } catch (err) {
-        console.error('Failed to refresh balance:', err);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found for balance refresh');
+        return;
       }
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Balance refresh response:', res.data);
+      setBalance(res.data.balance);
+    } catch (err) {
+      console.error('Failed to refresh balance:', err.response?.data || err.message);
     }
   };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log('App useEffect: token exists:', !!token);
     if (token) {
       setIsAuthenticated(true);
       refreshBalance();
+    } else {
+      setIsAuthenticated(false);
+      setBalance(0);
     }
-  }, [isAuthenticated]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, balance, refreshBalance }}>

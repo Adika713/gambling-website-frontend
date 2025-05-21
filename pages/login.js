@@ -10,7 +10,7 @@ export default function AuthPanel() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const { setIsAuthenticated } = useContext(AuthContext);
+  const { setIsAuthenticated, refreshBalance } = useContext(AuthContext);
   const router = useRouter();
 
   const handleLogin = async (e) => {
@@ -21,10 +21,13 @@ export default function AuthPanel() {
         email,
         password,
       });
+      console.log('Login response:', res.data);
       localStorage.setItem('token', res.data.token);
       setIsAuthenticated(true);
-      router.push('/profile');
+      await refreshBalance();
+      setTimeout(() => router.push('/profile'), 100); // Delay navigation
     } catch (err) {
+      console.error('Login failed:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Login failed');
     }
   };
@@ -38,10 +41,13 @@ export default function AuthPanel() {
         password,
         username,
       });
+      console.log('Register response:', res.data);
       localStorage.setItem('token', res.data.token);
       setIsAuthenticated(true);
-      router.push('/profile');
+      await refreshBalance();
+      setTimeout(() => router.push('/profile'), 100); // Delay navigation
     } catch (err) {
+      console.error('Register failed:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Registration failed');
     }
   };

@@ -5,30 +5,60 @@ import { AuthContext } from '../pages/_app';
 export default function Profile() {
   const { isAuthenticated, balance } = useContext(AuthContext);
   const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
     if (isAuthenticated) {
       const fetchUser = async () => {
+        setLoading(true);
+        setError('');
         try {
           const token = localStorage.getItem('token');
+          console.log('Profile fetchUser: token exists:', !!token);
+          if (!token) {
+            throw new Error('No token found');
+          }
           const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log('Profile response:', res.data);
           setUser(res.data);
         } catch (err) {
-          console.error('Failed to fetch user:', err);
+          console.error('Failed to fetch user:', err.response?.data || err.message);
+          setError(err.response?.data?.message || 'Failed to load profile');
+        } finally {
+          setLoading(false);
         }
       };
       fetchUser();
+    } else {
+      setLoading(false);
     }
   }, [isAuthenticated]);
 
-  if (!isAuthenticated || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-        <p className="text-gray-100">Please log in to view your profile.</p>
+        <p className="text-gray-100">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || error) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+        <p className="text-red-500">{error || 'Please log in to view your profile.'}</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+        <p className="text-red-500">Failed to load profile data.</p>
       </div>
     );
   }
