@@ -15,6 +15,7 @@ export default function AuthPanel() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         email,
@@ -30,6 +31,7 @@ export default function AuthPanel() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         email,
@@ -46,17 +48,20 @@ export default function AuthPanel() {
 
   const switchMode = (newMode) => {
     setError('');
+    setEmail('');
+    setPassword('');
+    setUsername('');
     setMode(newMode);
   };
 
   const panelVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.3 } },
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
         <AnimatePresence mode="wait">
           {mode === 'login' ? (
@@ -104,7 +109,7 @@ export default function AuthPanel() {
                 </button>
               </form>
               <p className="text-blue-100 mt-4 text-center">
-                Don't have an account?{' '}
+                No account?{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('register')}
