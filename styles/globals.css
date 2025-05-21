@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-gray-900 text-gray-100;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3 {
+  @apply font-bold text-blue-200;
+}
+
+button, a {
+  @apply transition-colors duration-200;
+}

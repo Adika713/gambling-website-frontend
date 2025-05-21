@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import { AuthContext } from '../pages/_app';
 
 export default function Profile() {
+  const { isAuthenticated } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -20,13 +22,13 @@ export default function Profile() {
         setError('Failed to load profile');
       }
     };
-    fetchUser();
+    if (isAuthenticated) fetchUser();
 
     // Handle OAuth callback query parameters
     const { error, success } = router.query;
     if (error) setError(decodeURIComponent(error));
     if (success) setSuccess(decodeURIComponent(success));
-  }, [router.query]);
+  }, [router.query, isAuthenticated]);
 
   const connectDiscord = () => {
     const token = localStorage.getItem('token');
@@ -39,29 +41,43 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Profile</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {success && <p className="text-green-500 mb-4">{success}</p>}
+    <div className="max-w-4xl mx-auto p-4 mt-16">
+      <h2 className="text-3xl font-bold mb-6 text-blue-200">Profile</h2>
+      {error && <p className="text-red-400 mb-4">{error}</p>}
+      {success && <p className="text-green-400 mb-4">{success}</p>}
       {user && (
-        <div>
-          <p><strong>Username:</strong> {user.username}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Balance:</strong> ${user.balance}</p>
-          <p><strong>Discord:</strong> {user.discordId ? 'Connected' : 'Not Connected'}</p>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+          <p className="text-blue-100 mb-2">
+            <strong>Username:</strong> {user.username}
+          </p>
+          <p className="text-blue-100 mb-2">
+            <strong>Email:</strong> {user.email}
+          </p>
+          <p className="text-blue-100 mb-2">
+            <strong>Balance:</strong>{' '}
+            <img src="/chip.svg" alt="Chip" className="inline w-4 h-4" /> {user.balance}
+          </p>
+          <p className="text-blue-100 mb-4">
+            <strong>Discord:</strong> {user.discordId ? 'Connected' : 'Not Connected'}
+          </p>
           {!user.discordId && (
             <button
               onClick={connectDiscord}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
             >
               Connect with Discord
             </button>
           )}
-          <h3 className="text-lg font-semibold mt-4">Game History</h3>
-          <ul>
+          <h3 className="text-xl font-semibold mt-6 mb-4 text-blue-200">Game History</h3>
+          <ul className="space-y-2">
             {user.gameHistory.map((game, index) => (
-              <li key={index} className="p-2 border-b">
-                {game.game} - Bet: ${game.bet} - Outcome: {game.outcome} - {new Date(game.timestamp).toLocaleString()}
+              <li
+                key={index}
+                className="p-3 bg-gray-700 rounded border border-gray-600 text-blue-100"
+              >
+                {game.game} - Bet: <img src="/chip.svg" alt="Chip" className="inline w-4 h-4" />{' '}
+                {game.bet} - Outcome: {game.outcome} -{' '}
+                {new Date(game.timestamp).toLocaleString()}
               </li>
             ))}
           </ul>
