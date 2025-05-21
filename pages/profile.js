@@ -21,7 +21,7 @@ export default function Profile() {
   }, []);
 
   const connectDiscord = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/discord`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/discord`;
   };
 
   return (
