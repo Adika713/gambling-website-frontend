@@ -28,7 +28,7 @@ export default function Leaderboard() {
           err.response?.status === 401
             ? 'Authentication failed. Please log in again.'
             : err.response?.status === 404
-            ? 'Leaderboard endpoint not found.'
+            ? 'Leaderboard service unavailable. Try again later.'
             : err.response?.data?.message || 'Failed to load leaderboard'
         );
       } finally {

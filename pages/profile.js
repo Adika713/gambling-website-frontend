@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../pages/_app';
+import Link from 'next/link';
 
 export default function Profile() {
   const { isAuthenticated, balance } = useContext(AuthContext);
@@ -36,6 +37,8 @@ export default function Profile() {
           setError(
             err.response?.status === 401
               ? 'Authentication failed. Please log in again.'
+              : err.response?.status === 404
+              ? 'Profile service unavailable. Try again later.'
               : err.response?.data?.message || 'Failed to load profile'
           );
         } finally {
@@ -60,7 +63,14 @@ export default function Profile() {
   if (error) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-        <p className="text-red-500">{error}</p>
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          {error.includes('log in') && (
+            <Link href="/login" className="text-teal-400 hover:text-teal-300">
+              Go to Login
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
