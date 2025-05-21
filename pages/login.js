@@ -22,12 +22,29 @@ export default function AuthPanel() {
         password,
       });
       console.log('Login response:', res.data);
-      localStorage.setItem('token', res.data.token);
+      const token = res.data.token;
+      if (!token) {
+        throw new Error('No token received from login');
+      }
+      localStorage.setItem('token', token);
+      console.log('Token set:', token.substring(0, 10) + '...');
       setIsAuthenticated(true);
-      await refreshBalance();
-      setTimeout(() => router.push('/profile'), 100); // Delay navigation
+      // Retry refreshBalance up to 3 times
+      let attempts = 0;
+      while (attempts < 3) {
+        try {
+          await refreshBalance();
+          break;
+        } catch (err) {
+          console.warn(`Refresh balance attempt ${attempts + 1} failed:`, err.message);
+          attempts++;
+          if (attempts === 3) throw err;
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+      setTimeout(() => router.push('/profile'), 100);
     } catch (err) {
-      console.error('Login failed:', err.response?.data || err.message);
+      console.error('Login failed:', err.response?.status, err.response?.data || err.message);
       setError(err.response?.data?.message || 'Login failed');
     }
   };
@@ -42,12 +59,29 @@ export default function AuthPanel() {
         username,
       });
       console.log('Register response:', res.data);
-      localStorage.setItem('token', res.data.token);
+      const token = res.data.token;
+      if (!token) {
+        throw new Error('No token received from register');
+      }
+      localStorage.setItem('token', token);
+      console.log('Token set:', token.substring(0, 10) + '...');
       setIsAuthenticated(true);
-      await refreshBalance();
-      setTimeout(() => router.push('/profile'), 100); // Delay navigation
+      // Retry refreshBalance up to 3 times
+      let attempts = 0;
+      while (attempts < 3) {
+        try {
+          await refreshBalance();
+          break;
+        } catch (err) {
+          console.warn(`Refresh balance attempt ${attempts + 1} failed:`, err.message);
+          attempts++;
+          if (attempts === 3) throw err;
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+      setTimeout(() => router.push('/profile'), 100);
     } catch (err) {
-      console.error('Register failed:', err.response?.data || err.message);
+      console.error('Register failed:', err.response?.status, err.response?.data || err.message);
       setError(err.response?.data?.message || 'Registration failed');
     }
   };

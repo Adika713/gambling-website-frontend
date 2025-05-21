@@ -7,19 +7,30 @@ export default function Leaderboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchLeaderboard = async (attempt = 1) => {
       setLoading(true);
       setError('');
       try {
         const token = localStorage.getItem('token');
-        console.log('Leaderboard fetch: token exists:', !!token);
+        console.log('Leaderboard fetch: attempt:', attempt, 'token exists:', !!token);
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/leaderboard`, config);
         console.log('Leaderboard response:', res.data);
         setLeaderboard(res.data);
       } catch (err) {
-        console.error('Failed to fetch leaderboard:', err.response?.data || err.message);
-        setError(err.response?.data?.message || 'Failed to load leaderboard');
+        console.error('Failed to fetch leaderboard:', err.response?.status, err.response?.data || err.message);
+        if (attempt < 3 && err.response?.status === 401 && token) {
+          console.log(`Retrying fetchLeaderboard: attempt ${attempt + 1}`);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return fetchLeaderboard(attempt + 1);
+        }
+        setError(
+          err.response?.status === 401
+            ? 'Authentication failed. Please log in again.'
+            : err.response?.status === 404
+            ? 'Leaderboard endpoint not found.'
+            : err.response?.data?.message || 'Failed to load leaderboard'
+        );
       } finally {
         setLoading(false);
       }

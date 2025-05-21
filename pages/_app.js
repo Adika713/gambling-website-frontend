@@ -18,19 +18,20 @@ export default function MyApp({ Component, pageProps }) {
         console.log('No token found for balance refresh');
         return;
       }
+      console.log('Refreshing balance with token:', token.substring(0, 10) + '...');
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Balance refresh response:', res.data);
       setBalance(res.data.balance);
     } catch (err) {
-      console.error('Failed to refresh balance:', err.response?.data || err.message);
+      console.error('Failed to refresh balance:', err.response?.status, err.response?.data || err.message);
     }
   };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('App useEffect: token exists:', !!token);
+    console.log('App init: token exists:', !!token, 'token:', token ? token.substring(0, 10) + '...' : 'none');
     if (token) {
       setIsAuthenticated(true);
       refreshBalance();

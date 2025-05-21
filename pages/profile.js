@@ -12,14 +12,14 @@ export default function Profile() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchUser = async () => {
+      const fetchUser = async (attempt = 1) => {
         setLoading(true);
         setError('');
         try {
           const token = localStorage.getItem('token');
-          console.log('Profile fetchUser: token exists:', !!token);
+          console.log('Profile fetchUser: attempt:', attempt, 'token exists:', !!token);
           if (!token) {
-            throw new Error('No token found');
+            throw new Error('No authentication token found');
           }
           const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -27,8 +27,17 @@ export default function Profile() {
           console.log('Profile response:', res.data);
           setUser(res.data);
         } catch (err) {
-          console.error('Failed to fetch user:', err.response?.data || err.message);
-          setError(err.response?.data?.message || 'Failed to load profile');
+          console.error('Failed to fetch user:', err.response?.status, err.response?.data || err.message);
+          if (attempt < 3 && err.response?.status === 401) {
+            console.log(`Retrying fetchUser: attempt ${attempt + 1}`);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            return fetchUser(attempt + 1);
+          }
+          setError(
+            err.response?.status === 401
+              ? 'Authentication failed. Please log in again.'
+              : err.response?.data?.message || 'Failed to load profile'
+          );
         } finally {
           setLoading(false);
         }
@@ -36,6 +45,7 @@ export default function Profile() {
       fetchUser();
     } else {
       setLoading(false);
+      setError('Please log in to view your profile');
     }
   }, [isAuthenticated]);
 
@@ -47,10 +57,10 @@ export default function Profile() {
     );
   }
 
-  if (!isAuthenticated || error) {
+  if (error) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-        <p className="text-red-500">{error || 'Please log in to view your profile.'}</p>
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }
