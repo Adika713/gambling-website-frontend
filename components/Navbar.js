@@ -90,7 +90,7 @@ const Navbar = () => {
         )}
         {isAuthenticated && (
           <div className="absolute right-4">
-            <span>Balance: ${balance}</span>
+            <link rel="icon" href="/chip.svg" type="image/svg+xml" /><span>Balance: {balance}</span>
           </div>
         )}
       </div>
