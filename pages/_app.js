@@ -60,8 +60,8 @@ export default function MyApp({ Component, pageProps }) {
         <footer className="text-center py-4 text-teal-400">
           <p>This site uses virtual currency for entertainment purposes only.</p>
           <p>
-            <a href="https://beawaregambling.com" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300">
-              Be Aware Gambling
+            <a href="https://www.gambleaware.org/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300">
+              GambleAware
             </a>
           </p>
           <a
