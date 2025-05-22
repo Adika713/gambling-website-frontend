@@ -13,19 +13,16 @@ export default function Profile() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchUser = async (attempt = 1, useFallback = false) => {
+      const fetchUser = async (attempt = 1) => {
         setLoading(true);
         setError('');
         try {
           const token = localStorage.getItem('token');
-          console.log('Profile fetchUser: attempt:', attempt, 'useFallback:', useFallback, 'token exists:', !!token, 'token:', token ? token.substring(0, 10) + '...' : 'none');
+          console.log('Profile fetchUser: attempt:', attempt, 'token exists:', !!token, 'token:', token ? token.substring(0, 10) + '...' : 'none');
           if (!token) {
             throw new Error('No authentication token found');
           }
-          const url = useFallback
-            ? `${process.env.NEXT_PUBLIC_API_URL}/api/users/me`
-            : `${process.env.NEXT_PUBLIC_API_URL}/users/me`;
-          const res = await axios.get(url, {
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           console.log('Profile response:', res.data);
@@ -35,17 +32,13 @@ export default function Profile() {
           if (attempt < 3 && err.response?.status === 401) {
             console.log(`Retrying fetchUser: attempt ${attempt + 1}`);
             await new Promise((resolve) => setTimeout(resolve, 500));
-            return fetchUser(attempt + 1, useFallback);
-          }
-          if (err.response?.status === 404 && !useFallback) {
-            console.log('Trying fallback path /api/users/me');
-            return fetchUser(1, true);
+            return fetchUser(attempt + 1);
           }
           setError(
             err.response?.status === 401
               ? 'Authentication failed. Please log in again.'
               : err.response?.status === 404
-              ? 'Profile service unavailable. Contact support if this persists.'
+              ? 'User profile not found. Please re-register or contact support.'
               : err.response?.data?.message || 'Failed to load profile'
           );
         } finally {
@@ -75,6 +68,11 @@ export default function Profile() {
           {error.includes('log in') && (
             <Link href="/login" className="text-teal-400 hover:text-teal-300">
               Go to Login
+            </Link>
+          )}
+          {error.includes('re-register') && (
+            <Link href="/register" className="text-teal-400 hover:text-teal-300">
+              Register
             </Link>
           )}
         </div>
