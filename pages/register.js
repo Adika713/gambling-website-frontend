@@ -12,7 +12,6 @@ export default function Register() {
   const { setIsAuthenticated, refreshBalance } = useContext(AuthContext);
   const router = useRouter();
 
-  // Handle Discord OAuth callback
   useEffect(() => {
     const { token } = router.query;
     if (token) {
@@ -27,13 +26,12 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const payload = { email, password, username };
+    console.log('Register payload:', payload);
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        email,
-        password,
-        username,
-      });
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, payload);
       console.log('Register response:', res.data);
+      console.log('Register payload:', { email, password, username });
       localStorage.setItem('token', res.data.token);
       setIsAuthenticated(true);
       await refreshBalance();
