@@ -16,6 +16,7 @@ export default function MyApp({ Component, pageProps }) {
       const token = localStorage.getItem('token');
       if (!token) {
         console.log('No token found for balance refresh');
+        setBalance(0);
         return;
       }
       console.log('Refreshing balance with token:', token.substring(0, 10) + '...');
@@ -23,9 +24,10 @@ export default function MyApp({ Component, pageProps }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Balance refresh response:', res.data);
-      setBalance(res.data.balance);
+      setBalance(res.data.balance || 0);
     } catch (err) {
       console.error('Failed to refresh balance:', err.response?.status, err.response?.data || err.message);
+      setBalance(0); // Graceful fallback
     }
   };
 
